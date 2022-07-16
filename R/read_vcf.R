@@ -1,19 +1,17 @@
-require(readr)
-require(tidyr)
-require(purrr)
-
-parse_vcf_samples<-function(vi) {
-
-    ff=strsplit(vi$FORMAT[1],":")[[1]]
-    vi %>%
-        select(-FORMAT) %>%
-        gather(SAMPLE,GDATA,-VID) %>%
-        separate(GDATA,ff,sep=":") %>%
-        arrange(VID)
-
-}
+#' Read a vcf file
+#'
+#' @param vcfFile Path to vcf file
+#'
+#' @return A list with elements header, vm, vi
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' vcf<-read_vcf("inst/extdata/trio.2010_06.ychr.sites.vcf.gz")
+#' }
 
 read_vcf<-function(vcfFile) {
+
     vv=read_tsv(vcfFile,comment="##") %>%
         rename(CHROM=`#CHROM`) %>%
         mutate(VID=row_number()) %>%
@@ -58,5 +56,16 @@ read_vcf<-function(vcfFile) {
     header=header[1:(hi-1)]
 
     list(header=header,vm=vm,vs=vs)
+
+}
+
+parse_vcf_samples<-function(vi) {
+
+    ff=strsplit(vi$FORMAT[1],":")[[1]]
+    vi %>%
+        select(-FORMAT) %>%
+        gather(SAMPLE,GDATA,-VID) %>%
+        separate(GDATA,ff,sep=":") %>%
+        arrange(VID)
 
 }
