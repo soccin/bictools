@@ -12,14 +12,14 @@
 
 read_vcf<-function(vcfFile) {
 
-    vv=read_tsv(vcfFile,comment="##") %>%
+    vv=readr::read_tsv(vcfFile,comment="##",show_col_types = FALSE) %>%
         rename(CHROM=`#CHROM`) %>%
         mutate(VID=row_number()) %>%
         select(VID,everything())
 
     vs=select(vv,VID,10:ncol(vv)) %>%
         group_split(FORMAT) %>%
-        map(parse_vcf_samples) %>%
+        purrr::map(parse_vcf_samples) %>%
         bind_rows %>%
         arrange(VID,SAMPLE)
 
@@ -48,7 +48,6 @@ read_vcf<-function(vcfFile) {
         ii=nj
         nj=ni+nj
         ni=ii
-        print(nj)
     }
 
     header=readLines(vcfFile,n=nj)
@@ -59,13 +58,18 @@ read_vcf<-function(vcfFile) {
 
 }
 
+suppressPackageStartupMessages({
+    library(dplyr)
+    library(tidyr)
+})
+
 parse_vcf_samples<-function(vi) {
 
     ff=strsplit(vi$FORMAT[1],":")[[1]]
     vi %>%
         select(-FORMAT) %>%
         gather(SAMPLE,GDATA,-VID) %>%
-        separate(GDATA,ff,sep=":") %>%
+        separate(GDATA,ff,sep=":",fill="right") %>%
         arrange(VID)
 
 }
